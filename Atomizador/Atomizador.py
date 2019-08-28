@@ -47,7 +47,6 @@ fig = Figure()
 grafico = fig.add_subplot(111)
 # aquisição de dados
 parar = None
-
 #---------------------------------------------------------FUNÇÃO DOS BOTÕES
 def serial_ports(): # detectar automaticamente a porta serial
     # pega as portas do sistema
@@ -97,6 +96,7 @@ def mudarsetpoint():
     SP = edsetpoint.get()
     # imprime o set point na janela
     lbtempsp["text"] = SP
+    SP = int(SP)
     print(SP)
     # verifica se o set point foi colocado
     if not SP:
@@ -135,10 +135,13 @@ def adquirirdados():
         arduinostring = str(arduinostring, 'utf-8')
         # separa as duas temperaturas
         dadosarray = arduinostring.split(',')
+        dadosarray[0].strip()
+        dadosarray[1].strip()
         # a primeira é do reator
-        tempreator = float(dadosarray[0])
+        global tempreator
+        tempbanho = float(dadosarray[0])
         # a segunda é do banho
-        tempbanho = float(dadosarray[1])
+        tempreator = float(dadosarray[1])
         # adiciona na lista das temperaturas do reator
         lista_treator.append(tempreator)
         # adiciona na lista de temperatura do banho
@@ -149,7 +152,7 @@ def adquirirdados():
         # adiciona na lista do tempo o contador temporal
         lista_tempo.extend([contador_tempo])
         # incrementa o tempo
-        contador_tempo = contador_tempo + 1
+        contador_tempo = contador_tempo + 5
         # reseta o grafico
         grafico.cla()
         # chama a funcao para refazer novamente
@@ -170,6 +173,7 @@ def aquisicaodados():
         t1 = threading.Thread(target=adquirirdados)
         t1.daemon = True
         # flag de parada como falsa
+        global parar
         parar = False
         t1.start()
     else:
@@ -199,7 +203,7 @@ def configuracoesgrafico():
     grafico.set_title("Monitoramento da Temperatura")
     grafico.set_xlabel("Tempo (s)")
     grafico.set_ylabel("Temperatura (ºC)")
-    grafico.set_ylim(0,160)
+    grafico.set_ylim(0,100)
     grafico.grid()
     grafico.plot(lista_tempo, lista_treator, 'ro-', 
                  label='Temperatura do reator')
@@ -225,30 +229,35 @@ def controle():
         conexao.write(b'R000')
         time.sleep(1)
         conexao.write(b'j000')
-        print("desligado")
+        global pararcontroleautomatico
         pararcontroleautomatico = True
+        print("desligado")
     else:
         btcontrole["bg"] = ligado
-        conexao.write(b'R100')
-        time.sleep(1)
-        conexao.write(b'j100')
         print("rodando")
         pararcontroleautomatico = False
         # aciona o controle automatico no background
         t2 = threading.Thread(target=controleautomatico)
         t2.daemon = True
+        t2.start()
         
 def controleautomatico():
     soma = 0
     contador_condensador = 0
     erro_anterior = 0
+    dt = 5
+    tempo_condensador = 120/dt;
     while True:
         # flag de parada da função em segundo plano
         erro = SP - tempreator # calcula o erro
-        soma = soma + (erro + erro_anterior)
+        print("erro: ", erro)
+        soma = soma + (erro + erro_anterior)*dt/2
         contador_condensador = contador_condensador + 1
 
         if erro > 0:
+            # resistencias
+            print("resistencia on")
+            
             R = Kcp * erro
 
             if R < 0: # resistencia menor que 0%
@@ -261,34 +270,48 @@ def controleautomatico():
             R = 'R' + R # adicionando caractere
 
             conexao.write(bytes(R, 'UTF-8'))
-            time.sleep(1)
+            
+            print("%Resistencia", R)
+            
+            contador_condensador = 0
             
         else:
-            # condensador    
+            # condensador 
+            print("condensador on")
+                
             conexao.write(b'R000')
-            time.sleep(1)
     
-            C = Kc1 * ( abs(erro) + (1 / tau_i) * soma )
+            C = -Kc1 * ( erro + (1 / tau_i) * soma )
     
             if C < 0: 
                 C = 0
                 
             if C > 100:
                 C = 100
+            
+            print("SOMA:", soma)
     
-            if(contador_condensador > 60): # passado 120 segundos
+            if(contador_condensador > tempo_condensador): # passado 120 segundos
             
                 contador_condensador = 0
-    
+        
                 C = str(C) # convertendo para string
                 C = 'j' + C # adicionando caractere
-    
+                
+                print("%Condensador:", C)
+                print("SOMA:", soma)
+        
                 conexao.write(bytes(C, 'UTF-8'))
     
         erro_anterior = erro
+        time.sleep(dt)
 
         if pararcontroleautomatico:
+            conexao.write(b'R000')
+            conexao.write(b'j000')
+            print("controle desligado")
             break;
+    #print("parada aquisição")
         
 #---------------------------------------------------CONFIGURAÇÕES DA JANELA
 
