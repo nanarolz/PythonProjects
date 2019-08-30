@@ -30,7 +30,8 @@ cordefundo = '#ecf0f1'
 portastr = ' '
 # arduino
 conexao = serial.Serial()
-conexao.baudrate = 9600
+conexao.baudrate = 19200
+conexao.timeout = 5
 # listas
 lista_tempo = []
 lista_treator = []
@@ -47,6 +48,10 @@ fig = Figure()
 grafico = fig.add_subplot(111)
 # aquisição de dados
 parar = None
+# salvar em arquivo
+f = open("dados.csv", "a+")
+f.write("Tempo(s) , T reator , T banho\n")
+f.close()
 #---------------------------------------------------------FUNÇÃO DOS BOTÕES
 def serial_ports(): # detectar automaticamente a porta serial
     # pega as portas do sistema
@@ -82,6 +87,7 @@ def arduinoonoff():
             lbporta["text"] = " PORTA: " + portastr
             # abre a conexao 
             conexao.open()
+            time.sleep(1)
 
 def mudarporta():
     lbporta["text"] = " PORTA: " + edporta.get()
@@ -128,22 +134,40 @@ def ligasolenoide():
 
 def adquirirdados():
     contador_tempo = 0
+    rodada = 1
     while True:
-        # le uma linha do arduino
-        arduinostring = conexao.readline()
-        # transforma os bites em string
-        arduinostring = str(arduinostring, 'utf-8')
-        # separa as duas temperaturas
-        dadosarray = arduinostring.split(',')
-        dadosarray[0].strip()
-        dadosarray[1].strip()
-        # a primeira é do reator
-        global tempreator
-        tempbanho = float(dadosarray[0])
-        # a segunda é do banho
-        tempreator = float(dadosarray[1])
+       
+        while True: 
+           try:
+               conexao.flushInput()
+               time.sleep(1)
+               conexao.write(b'g') # liga
+               # le uma linha do arduino
+               arduinostring = conexao.readline()
+               print(arduinostring)
+               # transforma os bites em string
+               arduinostring = str(arduinostring, 'utf-8')
+               # separa as duas temperaturas
+               dadosarray = arduinostring.split(',')
+               # a primeira é do banho
+               global tempbanho
+               tempbanho = float(dadosarray[0])
+               # a segunda é do reator
+               global tempreator
+               tempreator = float(dadosarray[1])
+               break
+           except ValueError:
+               print("Erro de aquisição - Utilizar dados anteriores.")
+               if len(lista_treator)!=0:
+                   lista_treator.append(lista_treator[-1])
+                   lista_tbanho.append(lista_tbanho[-1])
+                   lista_tempo.append(lista_tempo[-1]+1)
+                   
         # adiciona na lista das temperaturas do reator
         lista_treator.append(tempreator)
+        
+        #lista_treator.append(lista_treator[-1])
+        
         # adiciona na lista de temperatura do banho
         lista_tbanho.append(tempbanho)
         # imprime as temperaturas na janela
@@ -152,15 +176,38 @@ def adquirirdados():
         # adiciona na lista do tempo o contador temporal
         lista_tempo.extend([contador_tempo])
         # incrementa o tempo
-        contador_tempo = contador_tempo + 5
+        contador_tempo = contador_tempo + 1
+        # se passou uma hora de funcionamento do programa
+        if(contador_tempo > 3600*rodada):
+            #escreva os dados em um arquivo
+            f = open("dados.csv", "a+")
+            if f is None:
+                return
+            output = '\n'.join('\t'.join(map(str,row)) for row in zip(
+                    lista_tempo, lista_treator, lista_tbanho))
+            f.write(output)
+            f.close()
+            # pega os ultimos valores de cada vetor            
+            temp_tempo = lista_tempo[-1]
+            temp_treator = lista_treator[-1]
+            temp_tbanho = lista_tbanho[-1]
+            # limpa todos os valores de cada vetor
+            lista_tempo.clear()
+            lista_treator.clear()
+            lista_tbanho.clear()
+            # coloca o ultimo valor do vetor anterior como primeiro do novo
+            lista_tempo.extend([temp_tempo])
+            lista_treator.append(temp_treator)
+            lista_tbanho.append(temp_tbanho)
+            # incrementa a rodada
+            rodada = rodada + 1
+        
         # reseta o grafico
         grafico.cla()
         # chama a funcao para refazer novamente
         configuracoesgrafico()
         # desenha o grafico na janela
         canvas.draw_idle()
-        # delay de 1 segundo
-        time.sleep(1)
         # flag de parada da função em segundo plano
         if parar:
             break;
@@ -250,7 +297,6 @@ def controleautomatico():
     while True:
         # flag de parada da função em segundo plano
         erro = SP - tempreator # calcula o erro
-        print("erro: ", erro)
         soma = soma + (erro + erro_anterior)*dt/2
         contador_condensador = contador_condensador + 1
 
@@ -288,8 +334,6 @@ def controleautomatico():
                 
             if C > 100:
                 C = 100
-            
-            print("SOMA:", soma)
     
             if(contador_condensador > tempo_condensador): # passado 120 segundos
             
@@ -299,7 +343,6 @@ def controleautomatico():
                 C = 'j' + C # adicionando caractere
                 
                 print("%Condensador:", C)
-                print("SOMA:", soma)
         
                 conexao.write(bytes(C, 'UTF-8'))
     
