@@ -57,11 +57,11 @@ def serial_ports(): # detectar automaticamente a porta serial
     # pega as portas do sistema
     comlist = serial.tools.list_ports.comports()
     # lista das conectadas
-    connected = []
+    conectados = []
     for element in comlist:
         # coloca na lista aquelas que estao conectadas
-        connected.append(element.device)
-    return connected
+        conectados.append(element.device)
+    return conectados
 
 def arduinoonoff():
     if btarduino["text"] == "PLACA ON":
@@ -144,7 +144,6 @@ def adquirirdados():
                conexao.write(b'g') # liga
                # le uma linha do arduino
                arduinostring = conexao.readline()
-               print(arduinostring)
                # transforma os bites em string
                arduinostring = str(arduinostring, 'utf-8')
                # separa as duas temperaturas
@@ -172,13 +171,15 @@ def adquirirdados():
         lista_tbanho.append(tempbanho)
         # imprime as temperaturas na janela
         lbtemp1["text"] = tempreator
-        lbtemp2["text"] = tempbanho    
+        lbtemp2["text"] = tempbanho  
+        lbtempodecorrido["text"] = contador_tempo
         # adiciona na lista do tempo o contador temporal
         lista_tempo.extend([contador_tempo])
         # incrementa o tempo
         contador_tempo = contador_tempo + 1
+        '''
         # se passou uma hora de funcionamento do programa
-        if(contador_tempo > 3600*rodada):
+        if(contador_tempo > 360*rodada):
             #escreva os dados em um arquivo
             f = open("dados.csv", "a+")
             if f is None:
@@ -201,7 +202,7 @@ def adquirirdados():
             lista_tbanho.append(temp_tbanho)
             # incrementa a rodada
             rodada = rodada + 1
-        
+        '''
         # reseta o grafico
         grafico.cla()
         # chama a funcao para refazer novamente
@@ -302,7 +303,7 @@ def controleautomatico():
 
         if erro > 0:
             # resistencias
-            print("resistencia on")
+            lbstatus["text"] = "resistência on"
             
             R = Kcp * erro
 
@@ -313,17 +314,16 @@ def controleautomatico():
                 R = 100
 
             R = str(R) # convertendo para string
+            lbpercentual["text"] = R[0:4]
             R = 'R' + R # adicionando caractere
 
             conexao.write(bytes(R, 'UTF-8'))
-            
-            print("%Resistencia", R)
             
             contador_condensador = 0
             
         else:
             # condensador 
-            print("condensador on")
+            lbstatus["text"] = "condensador on"
                 
             conexao.write(b'R000')
     
@@ -340,10 +340,9 @@ def controleautomatico():
                 contador_condensador = 0
         
                 C = str(C) # convertendo para string
+                lbpercentual["text"] = C[0:4]
                 C = 'j' + C # adicionando caractere
                 
-                print("%Condensador:", C)
-        
                 conexao.write(bytes(C, 'UTF-8'))
     
         erro_anterior = erro
@@ -451,13 +450,25 @@ lbtemp2 = tkinter.Label(janela, text="-", bg=cordefundo, font=("Helvetica", 16))
 lbtemp2.grid(row=10,column=2)
 
 #---------------------------------------------------------------------DADOS
+
+lbstatus = tkinter.Label(janela, text="STATUS", bg=cordefundo, font=("Helvetica", 12))
+lbstatus.grid(row=11,column=0,columnspan=3)
+
+lbpercentual = tkinter.Label(janela, text="00.00", bg=cordefundo, font=("Helvetica", 12))
+lbpercentual.grid(row=12,column=0,columnspan=2)
+
+lbporcentagem = tkinter.Label(janela, text="%", bg=cordefundo, font=("Helvetica", 12))
+lbporcentagem.grid(row=12,column=2)
+
+lbtempo = tkinter.Label(janela, text="TEMPO OPERAÇÃO (s)", bg=cordefundo,
+                        font=("Helvetica", 12))
+lbtempo.grid(row=13,column=0,columnspan=3)
+
+lbtempodecorrido = tkinter.Label(janela, text="0", bg=cordefundo,
+                        font=("Helvetica", 12))
+lbtempodecorrido.grid(row=14,column=0,columnspan=3)
+
 '''
-lbtempo = Label(janela, text="Tempo", bg=cordefundo, font=("Helvetica", 12))
-lbtempo.grid(row=11,column=0)
-
-lbtempo = Label(janela, text="Tbanho", bg=cordefundo, font=("Helvetica", 12))
-lbtempo.grid(row=11,column=1)
-
 lbtempo = Label(janela, text="Treator", bg=cordefundo, font=("Helvetica", 12))
 lbtempo.grid(row=11,column=2)
 
