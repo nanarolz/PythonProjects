@@ -30,7 +30,7 @@ cordefundo = '#ecf0f1'
 portastr = ' '
 # arduino
 conexao = serial.Serial()
-conexao.baudrate = 19200
+conexao.baudrate = 9600
 conexao.timeout = 5
 # listas
 lista_tempo = []
@@ -103,7 +103,6 @@ def mudarsetpoint():
     # imprime o set point na janela
     lbtempsp["text"] = SP
     SP = int(SP)
-    print(SP)
     # verifica se o set point foi colocado
     if not SP:
         messagebox.showinfo("Erro", "Defina a temperatura (ºC) do set point.")
@@ -134,7 +133,6 @@ def ligasolenoide():
 
 def adquirirdados():
     contador_tempo = 0
-    rodada = 1
     while True:
        
         while True: 
@@ -176,33 +174,7 @@ def adquirirdados():
         # adiciona na lista do tempo o contador temporal
         lista_tempo.extend([contador_tempo])
         # incrementa o tempo
-        contador_tempo = contador_tempo + 1
-        '''
-        # se passou uma hora de funcionamento do programa
-        if(contador_tempo > 360*rodada):
-            #escreva os dados em um arquivo
-            f = open("dados.csv", "a+")
-            if f is None:
-                return
-            output = '\n'.join('\t'.join(map(str,row)) for row in zip(
-                    lista_tempo, lista_treator, lista_tbanho))
-            f.write(output)
-            f.close()
-            # pega os ultimos valores de cada vetor            
-            temp_tempo = lista_tempo[-1]
-            temp_treator = lista_treator[-1]
-            temp_tbanho = lista_tbanho[-1]
-            # limpa todos os valores de cada vetor
-            lista_tempo.clear()
-            lista_treator.clear()
-            lista_tbanho.clear()
-            # coloca o ultimo valor do vetor anterior como primeiro do novo
-            lista_tempo.extend([temp_tempo])
-            lista_treator.append(temp_treator)
-            lista_tbanho.append(temp_tbanho)
-            # incrementa a rodada
-            rodada = rodada + 1
-        '''
+        contador_tempo = contador_tempo + 5
         # reseta o grafico
         grafico.cla()
         # chama a funcao para refazer novamente
@@ -210,6 +182,7 @@ def adquirirdados():
         # desenha o grafico na janela
         canvas.draw_idle()
         # flag de parada da função em segundo plano
+        time.sleep(4)
         if parar:
             break;
     #print("parada aquisição")
@@ -253,6 +226,7 @@ def configuracoesgrafico():
     grafico.set_ylabel("Temperatura (ºC)")
     grafico.set_ylim(0,100)
     grafico.grid()
+    grafico.minorticks_on()
     grafico.plot(lista_tempo, lista_treator, 'ro-', 
                  label='Temperatura do reator')
     grafico.plot(lista_tempo, lista_tbanho, 'b^-', 
@@ -312,12 +286,23 @@ def controleautomatico():
     
             if R > 100: # resistencia maior que 100%
                 R = 100
-
-            R = str(R) # convertendo para string
-            lbpercentual["text"] = R[0:4]
+                
+            R = int(R)
+            
+            if R < 10:
+                R = str(R) # convertendo para string
+                R = '00' + R
+            
+            elif (R >= 10) and (R <= 99):
+                R = str(R) # convertendo para string
+                R = '0' + R
+            else:
+                R = str(R) # convertendo para string
+            
+            lbpercentual["text"] = R
             R = 'R' + R # adicionando caractere
-
-            conexao.write(bytes(R, 'UTF-8'))
+            #R.encode('utf-8')
+            conexao.write(bytes(R,'utf-8'))
             
             contador_condensador = 0
             
@@ -342,7 +327,6 @@ def controleautomatico():
                 C = str(C) # convertendo para string
                 lbpercentual["text"] = C[0:4]
                 C = 'j' + C # adicionando caractere
-                
                 conexao.write(bytes(C, 'UTF-8'))
     
         erro_anterior = erro
