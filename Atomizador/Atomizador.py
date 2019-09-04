@@ -48,10 +48,7 @@ fig = Figure()
 grafico = fig.add_subplot(111)
 # aquisição de dados
 parar = None
-# salvar em arquivo
-f = open("dados.csv", "a+")
-f.write("Tempo(s) , T reator , T banho\n")
-f.close()
+
 #---------------------------------------------------------FUNÇÃO DOS BOTÕES
 def serial_ports(): # detectar automaticamente a porta serial
     # pega as portas do sistema
@@ -137,7 +134,7 @@ def adquirirdados():
        
         while True: 
            try:
-               conexao.flushInput()
+               conexao.flushOutput()
                time.sleep(1)
                conexao.write(b'g') # liga
                # le uma linha do arduino
@@ -214,6 +211,7 @@ def salvar():
     f = filedialog.asksaveasfile(mode='w', defaultextension=".csv")
     if f is None:
         return
+    # salvar em arquivo
     f.write("Tempo(s) , T reator , T banho\n")
     output = '\n'.join('\t'.join(map(str,row)) for row in zip(
             lista_tempo, lista_treator, lista_tbanho))
