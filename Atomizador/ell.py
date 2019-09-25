@@ -51,15 +51,31 @@ def gamma(T,x1,x2,x3,x4):
     #Parte residual.
     psi = np.exp(Interation[2:]/T)
     X = np.dot(Not_H,x)/np.sum(np.dot(Not_H,x))
-    Xi = Not_H/np.dot(np.transpose(Not_H),np.ones(len(Not_H)))
     theta = Interation[1]*X/np.sum(Interation[1]*X)
-
     
     #Construção da soma difícil.
     DUMMY1 = theta*psi
     DUMMY2 = np.dot(theta,np.transpose(psi))
     DUMMY3 = DUMMY1/DUMMY2
     lnGAMMA = Interation[1]*(1 - np.log(np.dot(np.transpose(psi),X)) - DUMMY3 )
+    
+    
+    lnGAMMAi = []
+    for i in range(len(x)):
+        x_dummy=np.zeros(len(x))
+        x_dummy[i]=1
+        X = np.dot(Not_H,x_dummy)/np.sum(np.dot(Not_H,x_dummy))
+        theta = Interation[1]*X/np.sum(Interation[1]*X)
+    
+        #Construção da soma difícil.
+        DUMMY1 = theta*psi
+        DUMMY2 = np.dot(theta,np.transpose(psi))
+        DUMMY3 = DUMMY1/DUMMY2
+        lnGAMMAi.append(Interation[1]*(1 - np.log(np.dot(np.transpose(psi),X)) - DUMMY3 )[i])
+        lnGAMMAi=np.array(lnGAMMAi)
+        
+    lnGAMMAR = np.dot(Interation[1],lnGAMMA
+        
     
     
     
