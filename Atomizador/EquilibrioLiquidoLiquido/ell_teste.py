@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+Created on Fri Sep 27 14:36:56 2019
+
+@author: mariana
+"""
+
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
 Created on Fri Sep 27 08:37:05 2019
 
 @author: mariana
@@ -10,16 +18,14 @@ import numpy as np
 
 
 T = 293.15
-x1 = 0.997 # óleo
-x2 = 0.001 # álcool
 x3 = 0.001 # ester
 x4 = 0.001 # glicerol
-x = np.array([x1,x2,x3,x4])
+x = np.array([x3,x4])
 z = 10
 
 #v
-Componentes=np.array([[1 , 11.79 , 0 , 1.53 , 0 , 1 , 0], # óleo
-                      [0,0,0,0,0,0,1], # álcool
+Componentes=np.array([ # óleo
+                       # álcool
                       [2 , 13.79 , 0 , 1.54 , 0 , 1 , 0], # ester
                       [0,2,1,0,3,0,0]]) # glicerol
 
