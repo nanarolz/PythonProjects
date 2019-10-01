@@ -27,7 +27,7 @@ Interacoes = np.array([[0.0000 , 0.0000 , 986.5 , 61.130], #CH3
 #-----------------------------------------------------------CONFIGURACIONAL
 r = np.dot(Componentes,np.transpose(Rx))
 q = np.dot(Componentes,np.transpose(Qx))
-l = z*(r-q)/2-(r-1)
+l = (z*(r-q)/2)-(r-1)
 fi = r*x/np.sum(r*x)
 ni = q*x/np.sum(q*x)
 lnGamaC = np.log(fi/x) + z/2*q*np.log(ni/fi) + l - np.sum(x*l)*fi/x
@@ -53,8 +53,18 @@ for i in range(len(x)):
     F_ = np.dot(theta_/E_,np.transpose(psi))
     lnGAMMA_ = Qx*(1 - np.log(E_) - F_)
     lnGAMMA2.append(lnGAMMA_)
-
+    
 lnGAMMA2 = np.array(lnGAMMA2) 
+
+# formatando lngamma
+aux = Componentes[:]
+for i in range(np.size(aux,0)):
+    for j in range(np.size(aux,1)):
+        if (aux[i,j] != 0):
+            aux[i,j] = 1
+
+lnGAMMA2 =aux*lnGAMMA2
+lnGAMMA1 = aux*lnGAMMA1
 lnGAMMAR = np.sum((Componentes*(lnGAMMA1-lnGAMMA2)),axis=1)
 #---------------------------------------------------------------------FINAL
 

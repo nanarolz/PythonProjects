@@ -55,6 +55,16 @@ for i in range(len(x)):
     lnGAMMA_ = Qx*(1 - np.log(E_) - F_)
     lnGAMMA2.append(lnGAMMA_)
 
+# formatando lngamma
+aux = Componentes[:]
+for i in range(np.size(aux,0)):
+    for j in range(np.size(aux,1)):
+        if (aux[i,j] != 0):
+            aux[i,j] = 1
+
+lnGAMMA2 =aux*lnGAMMA2
+lnGAMMA1 = aux*lnGAMMA1
+
 lnGAMMA2 = np.array(lnGAMMA2) 
 lnGAMMAR = np.sum((Componentes*(lnGAMMA1-lnGAMMA2)),axis=1)
 #---------------------------------------------------------------------FINAL
