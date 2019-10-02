@@ -88,7 +88,13 @@ def Equilíbrio(x_global,T,nit = 150):
         K=Gamma_phase1/Gamma_phase2
         
         f = lambda beta_new : np.sum(x_global/(beta_new + K*(1-beta_new))) - 1
-        beta = scipy.optimize.newton(f, x0=0.00001)
+        try:
+            beta = scipy.optimize.newton(f, x0=0.00001)
+        except RuntimeError:
+            print('não converge')
+            break
+        
+        
         
         x_phase1 = x_global/(beta + K*(1-beta))
         x_phase2 = (x_global- beta*x_phase1)/(1-beta)
