@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri Sep 27 08:37:05 2019
-
-@author: mariana
 """
 import numpy as np
 import scipy.optimize 
@@ -26,7 +24,7 @@ def gamma(x,T):
                            [      0 ,       0 ,       0 ,    74.54 ,  644.60 ,  972.40], #CH2
                            [      0 ,       0 ,       0 ,    74.54 ,  644.60 ,  972.40], #CH
                            [ 292.30 ,  292.30 ,  292.30 ,        0 ,   724.4 , -577.50], #CH--CH
-                           [  328.2 ,   328.2 ,   328.2 ,    470.7 ,       0 ,   195.6], #OH
+                           [ 328.20 ,  328.20 ,  328.20 ,   470.70 ,       0 ,  195.60], #OH
                            [-320.10 , -320.10 , -320.10 ,   485.60 ,  180.60 ,       0]]) #CH2COO
     
     #-----------------------------------------------------------CONFIGURACIONAL
@@ -59,15 +57,6 @@ def gamma(x,T):
         lnGAMMA_ = Qx*(1 - np.log(E_) - F_)
         lnGAMMA2.append(lnGAMMA_)
     
-    # formatando lngamma
-    aux = Componentes[:]
-    for i in range(np.size(aux,0)):
-        for j in range(np.size(aux,1)):
-            if (aux[i,j] != 0):
-                aux[i,j] = 1
-    
-    lnGAMMA2 =aux*lnGAMMA2
-    lnGAMMA1 = aux*lnGAMMA1
     lnGAMMA2 = np.array(lnGAMMA2) 
     lnGAMMAR = np.sum((Componentes*(lnGAMMA1-lnGAMMA2)),axis=1)
     #---------------------------------------------------------------------FINAL
@@ -102,12 +91,8 @@ T=313.15
 x_eq = Equilíbrio(x_global,T)
 
 #np.set_printoptions(precision=6,suppress=True)
-print('X do equilibrio 1 \n', x_eq)
-
-#x_global=np.array([etanol,ester,glicerol])
-x_global=np.array([0.0352,0.4784,0.4864])
-T=313.15
-x_eq = Equilíbrio(x_global,T)
-
-#np.set_printoptions(precision=6,suppress=True)
-print('X do equilibrio 2 \n', x_eq)
+print('\n X do equilibrio\n')
+print(' 0.1061 , 0.8690 , 0.0249')
+print(x_eq[1])
+print('\n 0.2856 , 0.0211 , 0.6933')
+print(x_eq[0])
