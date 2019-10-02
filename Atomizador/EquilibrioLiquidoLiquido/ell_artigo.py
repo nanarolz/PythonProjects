@@ -41,8 +41,8 @@ def gamma(x,T):
     # para a mistura
     X = np.dot(np.transpose(Componentes),x)/np.sum(np.dot(np.transpose(Componentes),x))
     theta = Qx*X/np.sum(Qx*X)
-    E = np.dot(theta,psi)
-    F = np.dot(theta/E,np.transpose(psi))
+    E = np.dot(psi,theta)
+    F = np.dot(theta/E,psi)
     lnGAMMA1 = Qx*(1 - np.log(E) - F)
     
     # para o componente puro
@@ -52,8 +52,8 @@ def gamma(x,T):
         x_[i] = 1
         X_ = np.dot(np.transpose(Componentes),x_)/np.sum(np.dot(np.transpose(Componentes),x_))
         theta_ = Qx*X_/np.sum(Qx*X_)
-        E_ = np.dot(theta_,psi)
-        F_ = np.dot(theta_/E_,np.transpose(psi))
+        E_ = np.dot(psi,theta_)
+        F_ = np.dot(theta_/E_,psi)
         lnGAMMA_ = Qx*(1 - np.log(E_) - F_)
         lnGAMMA2.append(lnGAMMA_)
     
@@ -79,20 +79,20 @@ def Equilíbrio(x_global,T,nit = 100):
         K=Gamma_phase1/Gamma_phase2
         
         f = lambda beta_new : np.sum(x_global/(beta_new + K*(1-beta_new))) - 1
-        beta = scipy.optimize.newton(f, x0=0.00001)
+        beta = scipy.optimize.newton(f, x0=0.01)
         
         x_phase1 = x_global/(beta + (K*(1-beta)))
         
     return np.array([x_phase1,x_phase2])
 
 #x_global=np.array([etanol,ester,glicerol])
-x_global=np.array([0.2066,0.3938,0.3996])
-T=313.15
+x_global = np.array([0.2066,0.3938,0.3996])
+T = 313.15
 x_eq = Equilíbrio(x_global,T)
 
-#np.set_printoptions(precision=6,suppress=True)
+np.set_printoptions(precision=4,suppress=True)
 print('\n X do equilibrio\n')
-print(' 0.1061 , 0.8690 , 0.0249')
+print(' 0.1061 0.8690 0.0249')
 print(x_eq[1])
-print('\n 0.2856 , 0.0211 , 0.6933')
+print('\n 0.2856 0.0211 0.6933')
 print(x_eq[0])
