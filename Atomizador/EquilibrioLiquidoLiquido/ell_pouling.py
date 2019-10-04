@@ -17,6 +17,7 @@ z = 10
 Componentes = np.array([[1 , 1 , 0], # acetona
                         [2 , 0 , 3]]) # n-pentano
 
+#    [ CH3   ,  CH3CO ,    CH2]
 Rx = [0.9011 , 1.6724 , 0.6744]
 Qx = [0.8480 , 1.4880 , 0.5400]
 
@@ -37,10 +38,11 @@ lnGamaC = np.log(fi/x) + z/2*q*np.log(ni/fi) + l - np.sum(x*l)*fi/x
 psi = np.exp(-Interacoes/T)
 
 # para a mistura
-X = np.dot(np.transpose(Componentes),x)/np.sum(np.dot(np.transpose(Componentes),x))
+S=np.dot(x,np.sum(Componentes,axis=1))
+X = np.dot(x,Componentes)/S
 theta = Qx*X/np.sum(Qx*X)
 E = np.dot(theta,psi)
-F = np.dot(theta/E,np.transpose(psi))
+F = np.dot(psi,theta/E)
 lnGAMMA1 = Qx*(1 - np.log(E) - F)
 
 # para o componente puro
@@ -48,10 +50,11 @@ lnGAMMA2 = []
 for i in range(len(x)):
     x_ = np.zeros(len(x))
     x_[i] = 1
-    X_ = np.dot(np.transpose(Componentes),x_)/np.sum(np.dot(np.transpose(Componentes),x_))
+    S=np.dot(x_,np.sum(Componentes,axis=1))
+    X_ = np.dot(x_,Componentes)/S
     theta_ = Qx*X_/np.sum(Qx*X_)
     E_ = np.dot(theta_,psi)
-    F_ = np.dot(theta_/E_,np.transpose(psi))
+    F_ = np.dot(psi,theta_/E_)
     lnGAMMA_ = Qx*(1 - np.log(E_) - F_)
     lnGAMMA2.append(lnGAMMA_)
 

@@ -10,9 +10,10 @@ import scipy.optimize
 def gamma(x,T):
     z=10
      #v
-    Componentes=np.array([[0 ,     0 , 0 ,    0 , 0 , 0 , 1], # álcool
-                          [2 , 13.79 , 0 , 1.54 , 0 , 1 , 0], # ester
-                          [2 ,     0 , 1 ,    0 , 0 , 3 , 0]]) # glicerol
+    Componentes=np.array([# CH3 ,   CH2 , CH , CH--CH , OH , CH2COO, EtOH
+                          [   0 ,     0 ,  0 ,      0 ,  0 ,     0 ,   1], # álcool
+                          [   2 , 13.79 ,  0 ,   1.54 ,  0 ,     1 ,   0], # ester
+                          [   2 ,     0 ,  1 ,      0 ,  0 ,     3 ,   0]]) # glicerol
     
     #    [  CH3  ,   CH2  ,   CH   , CH--CH ,  OH , CH2COO , EtOH]
     Rx = [0.9011 , 0.6744 , 0.4469 , 1.1167 , 1.0 , 1.6764 , 2.11]
@@ -26,7 +27,7 @@ def gamma(x,T):
                            [-320.10 , -320.10 , -320.10 ,   485.60 ,  180.60 ,       0 , -395.51], #CH2COO
                            [ -53.92 ,  -53.92 ,  -53.92 , -4658.24 , -550.58 ,  106.42 ,       0]]) #EtOH
     
-#-----------------------------------------------------------CONFIGURACIONAL
+    #-----------------------------------------------------------CONFIGURACIONAL
     r = np.dot(Componentes,np.transpose(Rx))
     q = np.dot(Componentes,np.transpose(Qx))
     l = z*(r-q)/2-(r-1)
@@ -70,7 +71,7 @@ def gamma(x,T):
 def Equilíbrio(x_global,T,nit = 100):
     #Estimativa do phase split.
     beta = 0.5
-    x_phase1 = np.array([0.05 , 0.05 , 0.90])
+    x_phase1 = np.array([0.05 , 0.05 , 0.9])
     
     for i in range(nit):
         x_phase2 = (x_global - (beta*x_phase1))/(1-beta)
@@ -80,7 +81,7 @@ def Equilíbrio(x_global,T,nit = 100):
         K=Gamma_phase1/Gamma_phase2
         
         f = lambda beta_new : np.sum(x_global/(beta_new + K*(1-beta_new))) - 1
-        beta = scipy.optimize.newton(f,1e-9,tol=1e-4)
+        beta = scipy.optimize.newton(f, x0=0.01)
         
         x_phase1 = x_global/(beta + (K*(1-beta)))
         

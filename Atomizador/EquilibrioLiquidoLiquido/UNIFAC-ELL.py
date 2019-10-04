@@ -28,7 +28,7 @@ def gamma(x,T):
                            [ 328.20 ,  328.20 ,  328.20 ,   470.70 ,       0 ,  195.60], #OH
                            [-320.10 , -320.10 , -320.10 ,   485.60 ,  180.60 ,       0]]) #CH2COO
     
-    #-----------------------------------------------------------CONFIGURACIONAL
+   #-----------------------------------------------------------CONFIGURACIONAL
     r = np.dot(Componentes,np.transpose(Rx))
     q = np.dot(Componentes,np.transpose(Qx))
     l = z*(r-q)/2-(r-1)
@@ -37,7 +37,7 @@ def gamma(x,T):
     lnGamaC = np.log(fi/x) + z/2*q*np.log(ni/fi) + l - np.sum(x*l)*fi/x
     
     #------------------------------------------------------------------RESIDUAL
-    psi = np.exp(-Interacoes/T)
+    psi = np.exp(-(Interacoes/T))
     
     # para a mistura
     S=np.dot(x,np.sum(Componentes,axis=1))

@@ -1,39 +1,44 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Sep 27 08:37:05 2019
 
-@author: mariana
-"""
 import numpy as np
+import scipy.optimize 
 
-T = 345
-x1 = 0.2
+T = 307
+x1 = 0.047
 x2 = 1 - x1
 x = np.array([x1,x2])
 z = 10
 
-Componentes = np.array([[1 , 1 , 1 , 0], # Etanol
-                        [0 , 0 , 0 , 6]]) # Benzeno
+#                       [ CH3 , CH3CO , CH2 ]
+Componentes = np.array([[   1 ,     1 ,   0 ], # acetona
+                        [   2 ,     0 ,   3 ]]) # n-pentano
 
-Rx = [0.9011 , 0.6744 , 1.000 , 0.5313]
-Qx = [0.8480 , 0.5400 , 1.200 , 0.4000]
+#    [ CH3   ,  CH3CO ,    CH2 ]
+Rx = [0.6325 , 1.7048 , 0.6325 ]
+Qx = [1.0608 , 1.6700 , 0.7081 ]
 
-Interacoes = np.array([[0.0000 , 0.0000 , 986.5 , 61.130], #CH3
-                       [0.0000 , 0.0000 , 986.5 , 61.130], #CH2
-                       [156.40 , 156.40 , 0.000 , 89.600], #OH
-                       [-11.12 , -11.12 , 636.1 , 0.0000]]) #ArCH
+#             [ CH3   ,  CH3CO ,    CH2 ] 
+a = np.array([[0.0000 , 433.60 ,  0.000 ], #CH3
+              [199.00 , 0.0000 , 199.00 ], #CH3CO
+              [0.0000 , 433.60 ,  0.000 ]]) #CH2
+#             [ CH3   ,  CH3CO ,    CH2 ] 
+b = np.array([[ 0.0000 , 0.1473 ,   0.000 ], #CH3
+              [-0.8709 , 0.0000 , -0.8709 ], #CH3CO
+              [ 0.0000 , 0.1473 ,   0.000 ]]) #CH2
+#             [ CH3   ,  CH3CO ,    CH2 ] 
+c = np.array([[0.0000 , 0.0000 ,  0.000 ], #CH3
+              [0.0000 , 0.0000 , 0.0000 ], #CH3CO
+              [0.0000 , 0.0000 ,  0.000 ]]) #CH2
 
-#-----------------------------------------------------------CONFIGURACIONAL
+ #-----------------------------------------------------------CONFIGURACIONAL
 r = np.dot(Componentes,np.transpose(Rx))
 q = np.dot(Componentes,np.transpose(Qx))
 l = z*(r-q)/2-(r-1)
-fi = r*x/np.sum(r*x)
+fi = r*(x**(3/4))/np.sum(r*(x**(3/4)))
 ni = q*x/np.sum(q*x)
 lnGamaC = np.log(fi/x) + z/2*q*np.log(ni/fi) + l - np.sum(x*l)*fi/x
 
 #------------------------------------------------------------------RESIDUAL
-psi = np.exp(-Interacoes/T)
+psi = np.exp(-((a + b*T + c*(T**2))/T))
 
 # para a mistura
 S=np.dot(x,np.sum(Componentes,axis=1))
@@ -62,5 +67,6 @@ lnGAMMAR = np.sum((Componentes*(lnGAMMA1-lnGAMMA2)),axis=1)
 
 LnGamma = lnGamaC + lnGAMMAR
 Gamma = np.exp(LnGamma)
+
 for i in range(len(Gamma)):
     print('Gamma', i+1 , ' = ' , Gamma[i])

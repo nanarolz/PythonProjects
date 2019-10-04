@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 """
 Created on Wed Oct  2 16:30:22 2019
+
+@author: mariana
 """
 
 import numpy as np
@@ -12,32 +14,50 @@ def gamma(x,T):
     z=10
     #v
     Componentes=np.array([#CH3 ,   CH2 , CH , CH--CH , OH , CH2COO 
-                          [1   , 1     ,  0 ,   0    ,  1 ,      0], # álcool
-                          [2   , 13.79 ,  0 ,   1.54 ,  0 ,      1], # ester
+                          [1   , 1     ,  0 ,   0    ,  1 ,      0],  # álcool
+                          [2   , 13.79 ,  0 ,   1.54 ,  0 ,      1],  # ester
                           [2   , 1     ,  0 ,   0    ,  3 ,      0]]) # glicerol
     
-    #    [  CH3  ,   CH2  ,   CH   , CH--CH ,  OH , CH2COO]
-    Rx = [0.9011 , 0.6744 , 0.4469 , 1.1167 , 1.0 , 1.6764]
-    Qx = [0.8480 , 0.5400 , 0.2280 , 0.8670 , 1.2 , 1.4200]
+    #    [  CH3  ,   CH2  ,   CH   , CH--CH ,    OH  , CH2COO]
+    Rx = [0.6325 , 0.6325 , 0.6325 , 1.2832 , 1.2302 , 1.2700]
+    Qx = [1.0608 , 0.7081 , 0.3554 , 1.2489 , 0.8927 , 1.4228]
     
-    Interacoes = np.array([#    CH3 ,     CH2 ,      CH ,   CH--CH ,      OH ,  CH2COO]
-                           [      0 ,       0 ,       0 ,    74.54 ,  644.60 ,  972.40], #CH3
-                           [      0 ,       0 ,       0 ,    74.54 ,  644.60 ,  972.40], #CH2
-                           [      0 ,       0 ,       0 ,    74.54 ,  644.60 ,  972.40], #CH
-                           [ 292.30 ,  292.30 ,  292.30 ,        0 ,   724.4 , -577.50], #CH--CH
-                           [ 328.20 ,  328.20 ,  328.20 ,   470.70 ,       0 ,  195.60], #OH
-                           [-320.10 , -320.10 , -320.10 ,   485.60 ,  180.60 ,       0]]) #CH2COO
+    # linha i, coluna j
     
-    #-----------------------------------------------------------CONFIGURACIONAL
+    a = np.array([#    CH3 ,     CH2 ,      CH ,  CH--CH ,     OH , CH2COO]
+                 [       0 ,       0 ,       0 ,  189.66 , 2777.0 , 98.656],  #CH3
+                 [       0 ,       0 ,       0 ,  189.66 , 2777.0 , 98.656],  #CH2
+                 [       0 ,       0 ,       0 ,  189.66 , 2777.0 , 98.656],  #CH
+                 [ -95.418 , -95.418 , -95.418 ,       0 , 2649.0 , 980.74],  #CH--CH
+                 [  1606.0 ,  1606.0 ,  1606.0 ,  1566.0 ,      0 , 973.80],  #OH
+                 [  632.22 ,  632.22 ,  632.22 , -582.82 , 310.40 ,      0]]) #CH2COO
+    
+    b = np.array([#     CH3 ,      CH2 ,       CH ,  CH--CH ,     OH , CH2COO]
+                 [        0 ,        0 ,        0 , -0.2723 , -4.674 ,  1.9290],  #CH3
+                 [        0 ,        0 ,        0 , -0.2723 , -4.674 ,  1.9290],  #CH2
+                 [        0 ,        0 ,        0 , -0.2723 , -4.674 ,  1.9290],  #CH
+                 [ -0.06171 , -0.06171 , -0.06171 ,       0 , -6.508 , -2.4224],  #CH--CH
+                 [   1606.0 ,   1606.0 ,   1606.0 , -5.8090 ,      0 , -5.6330],  #OH
+                 [      4.0 ,      4.0 ,      4.0 ,  1.6732 , 1.5380 ,       0]]) #CH2COO
+    
+    c = np.array([#     CH3 ,      CH2 ,        CH ,    CH--CH ,        OH ,  CH2COO]
+                 [        0 ,        0 ,         0 ,         0 ,   0.00155 ,       0],  #CH3
+                 [        0 ,        0 ,         0 ,         0 ,   0.00155 ,       0],  #CH2
+                 [        0 ,        0 ,         0 ,         0 ,   0.00155 ,       0],  #CH
+                 [        0 ,        0 ,         0 ,         0 ,  0.004822 ,       0],  #CH--CH
+                 [ 0.009181 , 0.009181 ,  0.009181 ,  0.005197 ,         0 , 0.00769],  #OH
+                 [ 0.003133 , 0.003133 ,  0.003133 ,         0 , -0.004885 ,       0]]) #CH2COO
+    
+ #-----------------------------------------------------------CONFIGURACIONAL
     r = np.dot(Componentes,np.transpose(Rx))
     q = np.dot(Componentes,np.transpose(Qx))
     l = z*(r-q)/2-(r-1)
-    fi = r*x/np.sum(r*x)
+    fi = r*(x**(3/4))/np.sum(r*(x**(3/4)))
     ni = q*x/np.sum(q*x)
     lnGamaC = np.log(fi/x) + z/2*q*np.log(ni/fi) + l - np.sum(x*l)*fi/x
     
     #------------------------------------------------------------------RESIDUAL
-    psi = np.exp(-Interacoes/T)
+    psi = np.exp((-a + b*T + c*(T**2))/T)
     
     # para a mistura
     S=np.dot(x,np.sum(Componentes,axis=1))
@@ -82,7 +102,7 @@ def Equilíbrio(x_global,T,nit = 100):
         K=Gamma_phase1/Gamma_phase2
         
         f = lambda beta_new : np.sum(x_global/(beta_new + K*(1-beta_new))) - 1
-        beta = scipy.optimize.newton(f, x0=0.01)
+        beta = scipy.optimize.newton(f, x0=0.001)
         
         x_phase1 = x_global/(beta + (K*(1-beta)))
         
